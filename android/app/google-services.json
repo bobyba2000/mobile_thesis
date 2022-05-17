@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "600265855407",
+    "firebase_url": "https://mobile-thesis-default-rtdb.firebaseio.com",
+    "project_id": "mobile-thesis",
+    "storage_bucket": "mobile-thesis.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600265855407:android:c63b4c5d789fa5c3a85f5a",
+        "android_client_info": {
+          "package_name": "com.example.mobile_v2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "600265855407-a3095djfurdpb8jfra7mpcsgkd8ksdd7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEvIH-szhjnAFgrMZRV9pQJCHahh48roQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "600265855407-a3095djfurdpb8jfra7mpcsgkd8ksdd7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
