@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -84,7 +85,22 @@ class _LoadFilePageState extends State<LoadFilePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          backgroundColor: const Color.fromRGBO(245, 179, 66, 1),
+          actions: [
+            InkWell(
+              onTap: () {
+                FirebaseAuth.instance.signOut();
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(
+                  Iconsax.logout,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            )
+          ],
+          backgroundColor: Colors.blue,
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -205,7 +221,7 @@ class _LoadFilePageState extends State<LoadFilePage> {
             width: 40,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: const Color.fromRGBO(245, 179, 66, 1),
+              color: Colors.blue,
             ),
             child: const Center(
                 child: Icon(

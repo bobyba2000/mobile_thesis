@@ -27,6 +27,12 @@ dependencies:
   equatable: ^2.0.3
   file_saver: ^0.1.0
   intl: ^0.17.0
+  email_validator: ^2.0.1
+  google_sign_in: ^5.2.4
+  font_awesome_flutter: ^9.2.0
+  firebase_auth: ^3.3.12
+  flutter_login: ^3.2.0
+  google_sign_in_web: ^0.10.1+2
 
 dev_dependencies:
   flutter_test:

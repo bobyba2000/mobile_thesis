@@ -26,7 +26,7 @@ class FolderWidget extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: const Color.fromRGBO(245, 179, 66, 1),
+            color: Colors.blue,
           ),
           padding: const EdgeInsets.all(3),
           child: icon ??

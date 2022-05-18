@@ -61,8 +61,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                 filled: true,
                 border: _inputBorder(Colors.transparent),
                 enabledBorder: _inputBorder(Colors.transparent),
-                focusedBorder:
-                    _inputBorder(const Color.fromRGBO(245, 179, 66, 1)),
+                focusedBorder: _inputBorder(Colors.blue),
                 errorBorder: _inputBorder(Colors.red),
                 focusedErrorBorder: _inputBorder(Colors.transparent),
                 disabledBorder: _inputBorder(Colors.transparent),
@@ -93,7 +92,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                     child: Icon(
                       Iconsax.close_circle,
                       size: 24,
-                      color: Color.fromRGBO(245, 179, 66, 1),
+                      color: Colors.blue,
                     ),
                   ),
                 ),
@@ -113,7 +112,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                 child: Icon(
                   Iconsax.search_normal,
                   size: 24,
-                  color: Color.fromRGBO(245, 179, 66, 1),
+                  color: Colors.blue,
                 ),
               ),
             ),
