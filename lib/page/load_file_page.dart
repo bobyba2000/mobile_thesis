@@ -31,7 +31,7 @@ class _LoadFilePageState extends State<LoadFilePage> {
   @override
   void initState() {
     super.initState();
-    bloc = LoadFileBloc()..getListFile();
+    bloc = LoadFileBloc();
     _filePagewiseLoadController = PagewiseLoadController<FileModel>(
       pageFuture: (pageIndex) => bloc.loadListFile((pageIndex ?? 0), 6),
       pageSize: 6,
@@ -48,18 +48,25 @@ class _LoadFilePageState extends State<LoadFilePage> {
       create: (context) => bloc,
       child: BlocListener<LoadFileBloc, LoadFileState>(
         listener: (context, state) {
-          if (state.isUploadSuccess == true && state.isRequestDone()) {
-            ToastUtilities.show(
-              message: 'Upload file success',
-            );
-            _filePagewiseLoadController.reset();
-            bloc.closeRequest();
-          }
-
-          if (state.isDownloadSuccess == true && state.isRequestDone()) {
-            ToastUtilities.show(
-              message: 'Download file success',
-            );
+          if ((state.listStatus?.isNotEmpty ?? false) &&
+              state.isRequestDone()) {
+            if (state.isDownloadSuccess == true ||
+                state.isUploadSuccess == true) {
+              if (state.isDownloadSuccess == true) {
+                ToastUtilities.show(
+                  message: 'Download file success',
+                );
+              }
+              if (state.isUploadSuccess == true) {
+                ToastUtilities.show(
+                  message: 'Upload file success',
+                );
+              }
+            } else {
+              ToastUtilities.show(
+                message: 'Request failed.',
+              );
+            }
             _filePagewiseLoadController.reset();
             bloc.closeRequest();
           }

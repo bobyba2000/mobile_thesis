@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,18 +26,23 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     );
   }
 
-  Future<void> getListFile() async {
+  // Future<void> getListFile() async {
+  //   DataSnapshot response = await FirebaseDatabase.instance.ref()
+  //     ..get();
+  //   print(response);
+  // }
+
+  Future<List<FileModel>> loadListFile(int pageIndex, int pageSize) async {
+    // await getListFile();
     EasyLoading.show();
-    DataSnapshot response = await FirebaseDatabase.instance.ref('files').get();
+    DataSnapshot response = await FirebaseDatabase.instance
+        .ref('files')
+        .orderByChild('ownerId')
+        .equalTo(FirebaseAuth.instance.currentUser?.uid)
+        .get();
     List<FileModel> listItem =
         response.children.map((e) => FileModel.fromJson(e.value)).toList();
     EasyLoading.dismiss();
-    emit(state.copyWith(listFiles: listItem));
-  }
-
-  Future<List<FileModel>> loadListFile(int pageIndex, int pageSize) async {
-    await getListFile();
-    List<FileModel> listItem = state.listFiles ?? [];
 
     return listItem
         .where((element) => element.name.contains(state.textSearch ?? ''))
@@ -80,6 +86,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       name: file.name,
       timeCreate: DateFormat('dd/MM/y hh:mm').format(DateTime.now()),
       size: '${((bytes.length) / 1024).round()} kb',
+      ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
     );
     for (var i = 0; i < AppConstants.listUrl.length; i++) {
       _sendRequestUpload(i, file, fileModel);
@@ -200,6 +207,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
   }
 
   void closeRequest() {
+    EasyLoading.dismiss();
     emit(
       state.copyWith(
         listStatus: [],
