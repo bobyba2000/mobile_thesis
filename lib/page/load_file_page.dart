@@ -47,7 +47,7 @@ class _LoadFilePageState extends State<LoadFilePage> {
     return BlocProvider(
       create: (context) => bloc,
       child: BlocListener<LoadFileBloc, LoadFileState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if ((state.listStatus?.isNotEmpty ?? false) &&
               state.isRequestDone()) {
             if (state.isDownloadSuccess == true ||
@@ -67,8 +67,8 @@ class _LoadFilePageState extends State<LoadFilePage> {
                 message: 'Request failed.',
               );
             }
+            await bloc.closeRequest();
             _filePagewiseLoadController.reset();
-            bloc.closeRequest();
           }
         },
         child: BlocBuilder<LoadFileBloc, LoadFileState>(

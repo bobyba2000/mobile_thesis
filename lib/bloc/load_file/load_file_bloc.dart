@@ -26,14 +26,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     );
   }
 
-  // Future<void> getListFile() async {
-  //   DataSnapshot response = await FirebaseDatabase.instance.ref()
-  //     ..get();
-  //   print(response);
-  // }
-
-  Future<List<FileModel>> loadListFile(int pageIndex, int pageSize) async {
-    // await getListFile();
+  Future<void> getListFile() async {
     EasyLoading.show();
     DataSnapshot response = await FirebaseDatabase.instance
         .ref('files')
@@ -43,6 +36,15 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     List<FileModel> listItem =
         response.children.map((e) => FileModel.fromJson(e.value)).toList();
     EasyLoading.dismiss();
+    emit(state.copyWith(listFiles: listItem));
+  }
+
+  Future<List<FileModel>> loadListFile(int pageIndex, int pageSize) async {
+    List<FileModel> listItem = [];
+    if (state.listFiles == null) {
+      await getListFile();
+    }
+    listItem = state.listFiles ?? [];
 
     return listItem
         .where((element) => element.name.contains(state.textSearch ?? ''))
@@ -206,7 +208,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     }
   }
 
-  void closeRequest() {
+  Future<void> closeRequest() async {
     EasyLoading.dismiss();
     emit(
       state.copyWith(
@@ -215,5 +217,6 @@ class LoadFileBloc extends Cubit<LoadFileState> {
         isDownloadSuccess: false,
       ),
     );
+    await getListFile();
   }
 }
