@@ -1,8 +1,8 @@
 class AppConstants {
   static const List<String> listUrl = [
-    'https://decentralize-server-1.herokuapp.com/',
-    'https://decentralize-server-2.herokuapp.com/',
-    'https://decentralize-server-3.herokuapp.com/',
-    'https://decentralize-server-4.herokuapp.com/'
+    'http://13.215.225.68/',
+    'http://52.220.126.210/',
+    'http://54.251.80.28/',
+    'http://54.169.152.99/'
   ];
 }
