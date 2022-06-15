@@ -1,9 +1,14 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mobile_v2/model/server_model.dart';
+import 'package:mobile_v2/model/user_model.dart';
+import 'package:mobile_v2/page/auth/signup_option.dart';
+import 'package:mobile_v2/preference/user_prefrence.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -18,8 +23,31 @@ class _LoginPageState extends State<LoginPage> {
   Future<String?> _authUser(LoginData data) async {
     debugPrint('Name: ${data.name}, Password: ${data.password}');
     try {
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: data.name, password: data.password);
+      final server = await FirebaseDatabase.instance
+          .ref('servers')
+          .orderByChild('ownerId')
+          .equalTo(FirebaseAuth.instance.currentUser?.uid)
+          .get();
+      if (server.exists) {
+        final model = ServerModel.fromJson(server);
+        final prefs = await SharedPreferences.getInstance();
+        UserPrefrence.setIsServer(true);
+        UserPrefrence.setLocation(model.location ?? '');
+
+        prefs.setString('url', model.url);
+        prefs.setString('id', server.key ?? '');
+      } else {
+        final client = await FirebaseDatabase.instance
+            .ref('client')
+            .orderByChild('clientId')
+            .equalTo(FirebaseAuth.instance.currentUser?.uid)
+            .get();
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('location', (client.value as Map)['location'] ?? '');
+      }
+
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -35,12 +63,53 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<String?> _signupUser(SignupData data) async {
     debugPrint('Signup Name: ${data.name}, Password: ${data.password}');
+    SignupModel? res = await showDialog<SignupModel>(
+        context: context,
+        builder: (context) {
+          return const AlertDialog(
+            content: SignupOptionWidget(),
+          );
+        });
+    if (res == null) {
+      return 'Please select Signup option.';
+    }
     try {
-      final credential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: data.name ?? '',
         password: data.password ?? '',
       );
+
+      if (res.option == 'Client') {
+        await FirebaseDatabase.instance.ref('client').push().set(
+          {
+            'clientId': FirebaseAuth.instance.currentUser?.uid ?? '',
+            'location': res.optionDetail,
+          },
+        );
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('location', res.optionDetail);
+      } else {
+        User? user = FirebaseAuth.instance.currentUser;
+        user?.updateDisplayName(res.name);
+
+        await FirebaseDatabase.instance.ref('servers').push().set(
+              ServerModel(
+                url: res.optionDetail,
+                owner: UserModel(
+                  imageUrl: user?.photoURL,
+                  name: res.name ?? '',
+                  phoneNumber: res.phone ?? '',
+                  id: user?.uid ?? '',
+                ),
+                ownerId: user?.uid ?? '',
+                description: res.description ?? '',
+                status: 'Pending',
+              ).toJson(),
+            );
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('phoneNumber', user?.phoneNumber ?? '');
+        prefs.setString('url', res.optionDetail);
+      }
 
       return null;
     } on FirebaseAuthException catch (e) {

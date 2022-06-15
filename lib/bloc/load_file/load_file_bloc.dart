@@ -14,6 +14,7 @@ import 'package:mobile_v2/bloc/load_file/load_file_state.dart';
 import 'package:mobile_v2/constants.dart';
 import 'package:mobile_v2/model/file_model.dart';
 import 'package:mobile_v2/model/server_model.dart';
+import 'package:mobile_v2/preference/user_prefrence.dart';
 
 class LoadFileBloc extends Cubit<LoadFileState> {
   LoadFileBloc() : super(const LoadFileState());
@@ -56,28 +57,26 @@ class LoadFileBloc extends Cubit<LoadFileState> {
                 : pageIndex * pageSize + pageSize);
   }
 
-  Future<List<ServerModel>> loadListServer(int pageIndex) async {
-    final List<ServerModel> result = [
-      ServerModel(
-          name: 'Server 1', numberOfFile: 10, timeCreate: DateTime.now()),
-      ServerModel(
-          name: 'Server 2', numberOfFile: 10, timeCreate: DateTime.now()),
-      ServerModel(
-          name: 'Server 3', numberOfFile: 10, timeCreate: DateTime.now()),
-      ServerModel(
-          name: 'Server 4', numberOfFile: 10, timeCreate: DateTime.now()),
-    ];
-    return result;
+  Future<List<String>> loadListServers() async {
+    DataSnapshot response = await FirebaseDatabase.instance
+        .ref('servers')
+        .orderByChild('location')
+        .equalTo(await UserPrefrence.location)
+        .get();
+    List<ServerModel> listServer =
+        response.children.map((e) => ServerModel.fromJson(e.value)).toList();
+    return listServer.map((e) => e.url).toList();
   }
 
   Future<void> uploadFile(
     PlatformFile file,
   ) async {
+    List<String> listServers = await loadListServers();
     EasyLoading.show();
     emit(
       state.copyWith(
         isUploadSuccess: false,
-        listStatus: AppConstants.listUrl.map((e) => false).toList(),
+        listStatus: listServers.map((e) => false).toList(),
       ),
     );
     Uint8List bytes = kIsWeb
@@ -90,14 +89,14 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       size: '${((bytes.length) / 1024).round()} kb',
       ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
     );
-    for (var i = 0; i < AppConstants.listUrl.length; i++) {
-      _sendRequestUpload(i, file, fileModel);
+    for (var i = 0; i < listServers.length; i++) {
+      _sendRequestUpload(i, file, fileModel, listServers);
     }
   }
 
-  Future<void> _sendRequestUpload(
-      int urlIndex, PlatformFile file, FileModel fileModel) async {
-    final String url = AppConstants.listUrl[urlIndex];
+  Future<void> _sendRequestUpload(int urlIndex, PlatformFile file,
+      FileModel fileModel, List<String> urls) async {
+    final String url = urls[urlIndex];
     Uint8List bytes = kIsWeb
         ? (file.bytes ?? Uint8List.fromList([]))
         : await (File(file.path ?? '').readAsBytes());
@@ -122,7 +121,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       emit(
         state.copyWith(
           isUploadSuccess: true,
-          listStatus: AppConstants.listUrl
+          listStatus: urls
               .asMap()
               .entries
               .map((e) =>
@@ -133,7 +132,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     } else {
       emit(
         state.copyWith(
-          listStatus: AppConstants.listUrl
+          listStatus: urls
               .asMap()
               .entries
               .map((e) =>
@@ -145,20 +144,22 @@ class LoadFileBloc extends Cubit<LoadFileState> {
   }
 
   Future<void> downloadFile(FileModel fileModel) async {
+    List<String> urls = await loadListServers();
     EasyLoading.show();
     emit(
       state.copyWith(
         isDownloadSuccess: false,
-        listStatus: AppConstants.listUrl.map((e) => false).toList(),
+        listStatus: urls.map((e) => false).toList(),
       ),
     );
-    for (var i = 0; i < AppConstants.listUrl.length; i++) {
-      _sendRequestDownload(i, fileModel);
+    for (var i = 0; i < urls.length; i++) {
+      _sendRequestDownload(i, fileModel, urls);
     }
   }
 
-  Future<void> _sendRequestDownload(int urlIndex, FileModel fileModel) async {
-    final String url = AppConstants.listUrl[urlIndex];
+  Future<void> _sendRequestDownload(
+      int urlIndex, FileModel fileModel, List<String> urls) async {
+    final String url = urls[urlIndex];
     if (state.isDownloadSuccess == true) {
       return;
     }
@@ -172,7 +173,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       emit(
         state.copyWith(
           isDownloadSuccess: true,
-          listStatus: AppConstants.listUrl
+          listStatus: urls
               .asMap()
               .entries
               .map((e) =>
@@ -197,7 +198,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     } else {
       emit(
         state.copyWith(
-          listStatus: AppConstants.listUrl
+          listStatus: urls
               .asMap()
               .entries
               .map((e) =>

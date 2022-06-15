@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_v2/page/load_file_page.dart';
-import 'package:mobile_v2/page/login_page.dart';
+import 'package:mobile_v2/page/auth/login_page.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({Key? key}) : super(key: key);
