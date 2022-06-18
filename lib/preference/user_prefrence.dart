@@ -25,4 +25,19 @@ class UserPrefrence {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('location', location);
   }
+
+  static Future<void> setUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('url', url);
+  }
+
+  static Future<void> setPhoneNumber(String phoneNumber) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('phoneNumber', phoneNumber);
+  }
+
+  static Future<void> signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+  }
 }

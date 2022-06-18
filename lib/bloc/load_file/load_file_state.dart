@@ -7,6 +7,12 @@ class LoadFileState extends Equatable {
   final List<FileModel>? listFiles;
   final String? textSearch;
   final bool? isDownloadSuccess;
+  final String? userName;
+  final String? phoneNumber;
+  final String? location;
+  final bool? isServer;
+  final bool isLocationActive;
+  final String? errorMessage;
 
   const LoadFileState({
     this.isUploadSuccess,
@@ -14,6 +20,12 @@ class LoadFileState extends Equatable {
     this.listFiles,
     this.textSearch,
     this.isDownloadSuccess,
+    this.userName,
+    this.phoneNumber,
+    this.location,
+    this.isServer,
+    this.isLocationActive = false,
+    this.errorMessage,
   });
 
   @override
@@ -23,6 +35,10 @@ class LoadFileState extends Equatable {
         listFiles,
         textSearch,
         isDownloadSuccess,
+        userName,
+        phoneNumber,
+        location,
+        isLocationActive,
       ];
 
   bool isRequestDone() =>
@@ -34,6 +50,12 @@ class LoadFileState extends Equatable {
     List<bool>? listStatus,
     bool? isDownloadSuccess,
     String? textSearch,
+    String? userName,
+    String? phoneNumber,
+    String? location,
+    bool? isServer,
+    bool? isLocationActive,
+    String? errorMessage,
   }) {
     return LoadFileState(
       isUploadSuccess: isUploadSuccess ?? this.isUploadSuccess,
@@ -41,6 +63,12 @@ class LoadFileState extends Equatable {
       textSearch: textSearch ?? textSearch,
       listStatus: listStatus ?? this.listStatus,
       isDownloadSuccess: isDownloadSuccess ?? this.isDownloadSuccess,
+      userName: userName ?? this.userName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      location: location ?? this.location,
+      isServer: isServer ?? this.isServer,
+      isLocationActive: isLocationActive ?? this.isLocationActive,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 }

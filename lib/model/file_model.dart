@@ -6,12 +6,14 @@ class FileModel {
   String name;
   String? size;
   String timeCreate;
+  String location;
   String ownerId;
 
   FileModel({
     required this.name,
     this.size,
     required this.timeCreate,
+    required this.location,
     required this.ownerId,
   });
 
@@ -20,10 +22,12 @@ class FileModel {
     final timeCreate = json['timeCreate'] as String;
     final size = json['size'] as String?;
     final ownerId = json['ownerId'] as String;
+    final location = json['location'] as String;
     return FileModel(
       name: name,
       timeCreate: timeCreate,
       size: size,
+      location: location,
       ownerId: ownerId,
     );
   }
@@ -48,6 +52,7 @@ class FileModel {
         'name': name,
         'timeCreate': timeCreate,
         'size': size,
+        'location': location,
         'ownerId': ownerId,
       };
 }

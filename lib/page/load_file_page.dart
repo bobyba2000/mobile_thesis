@@ -9,6 +9,7 @@ import 'package:mobile_v2/bloc/load_file/load_file_state.dart';
 import 'package:mobile_v2/common/common_widget/file_widget.dart';
 import 'package:mobile_v2/common/common_widget/load_more_widget.dart';
 import 'package:mobile_v2/model/file_model.dart';
+import 'package:mobile_v2/preference/user_prefrence.dart';
 import 'package:mobile_v2/utils/toast_utils.dart';
 
 import '../common/common_widget/search_widget.dart';
@@ -37,7 +38,7 @@ class _LoadFilePageState extends State<LoadFilePage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => bloc,
+      create: (context) => bloc..loadInfo(),
       child: BlocListener<LoadFileBloc, LoadFileState>(
         listener: (context, state) async {
           if ((state.listStatus?.isNotEmpty ?? false) &&
@@ -75,6 +76,71 @@ class _LoadFilePageState extends State<LoadFilePage> {
   Widget _buildScreen(LoadFileState state) {
     return SafeArea(
       child: Scaffold(
+        drawer: Drawer(
+          child: ListView(
+            padding: const EdgeInsets.all(0),
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(color: Colors.blue),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Hello ${state.userName ?? ''}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      state.isServer == true ? 'Server' : 'Client',
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 223, 222, 222),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              ListTile(
+                title: Row(
+                  children: const [
+                    Icon(
+                      Iconsax.logout,
+                      color: Colors.grey,
+                      size: 30,
+                    ),
+                    SizedBox(width: 16),
+                    Text(
+                      'Log Out',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    )
+                  ],
+                ),
+                onTap: () async {
+                  await UserPrefrence.signOut();
+                  FirebaseAuth.instance.signOut();
+                },
+              ),
+            ],
+          ),
+        ),
         appBar: AppBar(
           title: const Text(
             'List Files',
@@ -93,7 +159,7 @@ class _LoadFilePageState extends State<LoadFilePage> {
                 padding: EdgeInsets.all(8.0),
                 child: Icon(
                   Iconsax.logout,
-                  color: Colors.white,
+                  color: Colors.grey,
                   size: 30,
                 ),
               ),
@@ -156,6 +222,13 @@ class _LoadFilePageState extends State<LoadFilePage> {
                     mainAxisSpacing: 10,
                     childAspectRatio: 0.3,
                     shrinkWrap: true,
+                    noItemsFoundBuilder: state.errorMessage != null
+                        ? (context) {
+                            return Center(
+                              child: Text(state.errorMessage!),
+                            );
+                          }
+                        : null,
                     itemBuilder: (context, value, index) {
                       return FileWidget(
                         name: value.name,
@@ -163,15 +236,6 @@ class _LoadFilePageState extends State<LoadFilePage> {
                         size: value.size ?? '0 kb',
                         onDownload: () async {
                           bloc.downloadFile(value);
-                          // final isSuccess = await bloc.download(value.id);
-                          // if (isSuccess) {
-                          //   ToastUtilities.show(
-                          //       message: 'Download file success');
-                          //   _filePagewiseLoadController.reset();
-                          // } else {
-                          //   ToastUtilities.show(
-                          //       message: 'Download file failed', isError: true);
-                          // }
                         },
                       );
                     },
@@ -181,37 +245,41 @@ class _LoadFilePageState extends State<LoadFilePage> {
             ),
           ),
         ),
-        floatingActionButton: InkWell(
-          onTap: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles();
+        floatingActionButton: state.isLocationActive == true
+            ? InkWell(
+                onTap: () async {
+                  FilePickerResult? result =
+                      await FilePicker.platform.pickFiles();
 
-            if (result != null) {
-              await bloc.uploadFile(result.files.first);
-              // if (isSuccess) {
-              //   ToastUtilities.show(message: 'Add file success');
-              //   _filePagewiseLoadController.reset();
-              // } else {
-              //   ToastUtilities.show(message: 'Add file failed', isError: true);
-              // }
-            } else {
-              ToastUtilities.show(message: 'Add file failed', isError: true);
-            }
-          },
-          child: Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.blue,
-            ),
-            child: const Center(
-                child: Icon(
-              Iconsax.add,
-              color: Colors.white,
-              size: 24,
-            )),
-          ),
-        ),
+                  if (result != null) {
+                    await bloc.uploadFile(result.files.first);
+                    // if (isSuccess) {
+                    //   ToastUtilities.show(message: 'Add file success');
+                    //   _filePagewiseLoadController.reset();
+                    // } else {
+                    //   ToastUtilities.show(message: 'Add file failed', isError: true);
+                    // }
+                  } else {
+                    ToastUtilities.show(
+                        message: 'Add file failed', isError: true);
+                  }
+                },
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.blue,
+                  ),
+                  child: const Center(
+                      child: Icon(
+                    Iconsax.add,
+                    color: Colors.white,
+                    size: 24,
+                  )),
+                ),
+              )
+            : null,
       ),
     );
   }

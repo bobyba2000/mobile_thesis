@@ -8,7 +8,6 @@ import 'package:mobile_v2/model/server_model.dart';
 import 'package:mobile_v2/model/user_model.dart';
 import 'package:mobile_v2/page/auth/signup_option.dart';
 import 'package:mobile_v2/preference/user_prefrence.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -25,28 +24,6 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: data.name, password: data.password);
-      final server = await FirebaseDatabase.instance
-          .ref('servers')
-          .orderByChild('ownerId')
-          .equalTo(FirebaseAuth.instance.currentUser?.uid)
-          .get();
-      if (server.exists) {
-        final model = ServerModel.fromJson(server);
-        final prefs = await SharedPreferences.getInstance();
-        UserPrefrence.setIsServer(true);
-        UserPrefrence.setLocation(model.location ?? '');
-
-        prefs.setString('url', model.url);
-        prefs.setString('id', server.key ?? '');
-      } else {
-        final client = await FirebaseDatabase.instance
-            .ref('client')
-            .orderByChild('clientId')
-            .equalTo(FirebaseAuth.instance.currentUser?.uid)
-            .get();
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setString('location', (client.value as Map)['location'] ?? '');
-      }
 
       return null;
     } on FirebaseAuthException catch (e) {
@@ -86,8 +63,9 @@ class _LoginPageState extends State<LoginPage> {
             'location': res.optionDetail,
           },
         );
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setString('location', res.optionDetail);
+        await setInfo(isServer: false, location: res.optionDetail);
+        await FirebaseAuth.instance.currentUser
+            ?.updateDisplayName(data.name?.split('@').first);
       } else {
         User? user = FirebaseAuth.instance.currentUser;
         user?.updateDisplayName(res.name);
@@ -99,16 +77,19 @@ class _LoginPageState extends State<LoginPage> {
                   imageUrl: user?.photoURL,
                   name: res.name ?? '',
                   phoneNumber: res.phone ?? '',
-                  id: user?.uid ?? '',
+                  // id: user?.uid ?? '',
                 ),
                 ownerId: user?.uid ?? '',
                 description: res.description ?? '',
                 status: 'Pending',
               ).toJson(),
             );
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setString('phoneNumber', user?.phoneNumber ?? '');
-        prefs.setString('url', res.optionDetail);
+        await setInfo(
+          isServer: true,
+          location: '',
+          url: res.optionDetail,
+          phoneNumber: res.phone,
+        );
       }
 
       return null;
@@ -123,6 +104,18 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint('Error: $e');
       return e.toString();
     }
+  }
+
+  Future<void> setInfo({
+    required bool isServer,
+    required String location,
+    String? url,
+    String? phoneNumber,
+  }) async {
+    await UserPrefrence.setIsServer(isServer);
+    await UserPrefrence.setLocation(location);
+    await UserPrefrence.setUrl(url ?? '');
+    UserPrefrence.setPhoneNumber(phoneNumber ?? '');
   }
 
   Future<String?> googleSignIn() async {

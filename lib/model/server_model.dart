@@ -18,6 +18,7 @@ class ServerModel {
   });
 
   factory ServerModel.fromJson(dynamic json) {
+    print(json);
     return ServerModel(
       url: json['url'],
       status: json['status'],

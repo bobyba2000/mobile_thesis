@@ -11,8 +11,8 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_v2/bloc/load_file/load_file_state.dart';
-import 'package:mobile_v2/constants.dart';
 import 'package:mobile_v2/model/file_model.dart';
+import 'package:mobile_v2/model/location_model.dart';
 import 'package:mobile_v2/model/server_model.dart';
 import 'package:mobile_v2/preference/user_prefrence.dart';
 
@@ -27,17 +27,91 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     );
   }
 
+  Future<void> setInfo({
+    required bool isServer,
+    required String location,
+    String? url,
+    String? phoneNumber,
+  }) async {
+    await UserPrefrence.setIsServer(isServer);
+    await UserPrefrence.setLocation(location);
+    await UserPrefrence.setUrl(url ?? '');
+    UserPrefrence.setPhoneNumber(phoneNumber ?? '');
+  }
+
+  Future<void> loadInfo() async {
+    final server = await FirebaseDatabase.instance
+        .ref('servers')
+        .orderByChild('ownerId')
+        .equalTo(FirebaseAuth.instance.currentUser?.uid)
+        .get();
+    if (server.exists) {
+      final model = ServerModel.fromJson(
+          (server.value as Map<String, dynamic>).values.first);
+      setInfo(
+        isServer: true,
+        location: model.location ?? '',
+        url: model.url,
+        phoneNumber: model.owner.phoneNumber,
+      );
+    } else {
+      final client = await FirebaseDatabase.instance
+          .ref('client')
+          .orderByChild('clientId')
+          .equalTo(FirebaseAuth.instance.currentUser?.uid)
+          .get();
+      await setInfo(
+          isServer: false, location: (client.value as Map)['location'] ?? '');
+    }
+  }
+
   Future<void> getListFile() async {
     EasyLoading.show();
+    await loadInfo();
+    String? location = await UserPrefrence.location;
+
+    bool isActive = false;
+
+    String? errorMessage;
+    if (location != null && location != '') {
+      print(location);
+      DataSnapshot locationResponse = await FirebaseDatabase.instance
+          .ref('locations')
+          .orderByChild('name')
+          .equalTo(location)
+          .get();
+
+      LocationModel locationModel = LocationModel.fromJson(
+          (locationResponse.value as Map<String, dynamic>).values.first);
+      isActive = locationModel.status == 'Active';
+      if (locationModel.status == 'Inactive') {
+        errorMessage = 'Your location is inactive now';
+      } else if (locationModel.status == 'Pending') {
+        errorMessage = 'Your location is pending now';
+      }
+    } else {
+      errorMessage = 'Your server is still Pending. Please wait.';
+    }
+    print(2);
     DataSnapshot response = await FirebaseDatabase.instance
         .ref('files')
         .orderByChild('ownerId')
         .equalTo(FirebaseAuth.instance.currentUser?.uid)
         .get();
+    print(3);
     List<FileModel> listItem =
         response.children.map((e) => FileModel.fromJson(e.value)).toList();
+    print(4);
     EasyLoading.dismiss();
-    emit(state.copyWith(listFiles: listItem));
+    emit(
+      state.copyWith(
+        listFiles: listItem,
+        userName: FirebaseAuth.instance.currentUser?.displayName,
+        isServer: await UserPrefrence.isServer,
+        isLocationActive: isActive,
+        errorMessage: errorMessage,
+      ),
+    );
   }
 
   Future<List<FileModel>> loadListFile(int pageIndex, int pageSize) async {
@@ -88,6 +162,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       timeCreate: DateFormat('dd/MM/y hh:mm').format(DateTime.now()),
       size: '${((bytes.length) / 1024).round()} kb',
       ownerId: FirebaseAuth.instance.currentUser?.uid ?? '',
+      location: (await UserPrefrence.location) ?? '',
     );
     for (var i = 0; i < listServers.length; i++) {
       _sendRequestUpload(i, file, fileModel, listServers);
@@ -102,7 +177,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
         : await (File(file.path ?? '').readAsBytes());
     final request = MultipartRequest(
       "POST",
-      Uri.parse('${url}upload'),
+      Uri.parse('$url/upload'),
     )
       ..fields['hash'] = fileModel.getHash()
       ..files.add(
@@ -166,7 +241,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     final request = MultipartRequest(
       "GET",
       Uri.parse(
-          '${url}download?hash=${fileModel.getHash()}&fileName=${fileModel.getSavedName()}'),
+          "$url/download?hash=${fileModel.getHash()}&fileName=${fileModel.getSavedName()}"),
     );
     final response = await request.send();
     if (response.statusCode == 200 && state.isDownloadSuccess != true) {
