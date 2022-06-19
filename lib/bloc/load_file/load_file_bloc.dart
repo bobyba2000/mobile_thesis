@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -74,7 +75,6 @@ class LoadFileBloc extends Cubit<LoadFileState> {
 
     String? errorMessage;
     if (location != null && location != '') {
-      print(location);
       DataSnapshot locationResponse = await FirebaseDatabase.instance
           .ref('locations')
           .orderByChild('name')
@@ -92,16 +92,13 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     } else {
       errorMessage = 'Your server is still Pending. Please wait.';
     }
-    print(2);
     DataSnapshot response = await FirebaseDatabase.instance
         .ref('files')
         .orderByChild('ownerId')
         .equalTo(FirebaseAuth.instance.currentUser?.uid)
         .get();
-    print(3);
     List<FileModel> listItem =
         response.children.map((e) => FileModel.fromJson(e.value)).toList();
-    print(4);
     EasyLoading.dismiss();
     emit(
       state.copyWith(
@@ -187,7 +184,17 @@ class LoadFileBloc extends Cubit<LoadFileState> {
           filename: file.name,
         ),
       );
-    final response = await request.send();
+    DateTime start = DateTime.now();
+    final response = await request
+        .send()
+        .timeout(const Duration(milliseconds: 5000), onTimeout: () {
+      return StreamedResponse(Stream.value([]), 408);
+    });
+    DateTime end = DateTime.now();
+    int timeResponse =
+        end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
+
+    updateServerInfo(response.statusCode, timeResponse, url, false);
 
     if (response.statusCode == 200 && state.isUploadSuccess != true) {
       DatabaseReference ref = FirebaseDatabase.instance.ref('files');
@@ -243,7 +250,16 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       Uri.parse(
           "$url/download?hash=${fileModel.getHash()}&fileName=${fileModel.getSavedName()}"),
     );
-    final response = await request.send();
+    DateTime start = DateTime.now();
+    final response = await request
+        .send()
+        .timeout(const Duration(milliseconds: 5000), onTimeout: () {
+      return StreamedResponse(Stream.value([]), 408);
+    });
+    DateTime end = DateTime.now();
+    int timeResponse =
+        end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
+    updateServerInfo(response.statusCode, timeResponse, url, true);
     if (response.statusCode == 200 && state.isDownloadSuccess != true) {
       emit(
         state.copyWith(
@@ -294,5 +310,40 @@ class LoadFileBloc extends Cubit<LoadFileState> {
       ),
     );
     await getListFile();
+  }
+
+  Future<void> updateServerInfo(
+      int statusCode, int time, String url, bool isDownload) async {
+    final server = await FirebaseDatabase.instance
+        .ref('servers')
+        .orderByChild('url')
+        .equalTo(url)
+        .get();
+    if (server.exists) {
+      final model = ServerModel.fromJson(
+          (server.value as Map<String, dynamic>).values.first);
+      if (statusCode == 408) {
+        model.unresponse++;
+      } else {
+        model.requestNumber++;
+        model.responseTime =
+            (model.responseTime * (model.requestNumber - 1) + time) /
+                model.requestNumber;
+
+        if (isDownload) {
+          model.requestDownload++;
+          model.responseDownloadTime =
+              (model.responseDownloadTime * (model.requestDownload - 1) +
+                      time) /
+                  model.requestDownload;
+        } else {
+          model.requestUpload++;
+          model.responseUploadTime =
+              (model.responseUploadTime * (model.requestUpload - 1) + time) /
+                  model.responseUploadTime;
+        }
+      }
+      server.children.first.ref.update(model.toJson());
+    }
   }
 }

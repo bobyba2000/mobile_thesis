@@ -12,7 +12,6 @@ class UserModel {
   });
 
   factory UserModel.fromJson(dynamic json) {
-    print(json);
     return UserModel(
       imageUrl: json['imageUrl'],
       name: json['name'],

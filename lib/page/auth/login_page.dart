@@ -82,6 +82,13 @@ class _LoginPageState extends State<LoginPage> {
                 ownerId: user?.uid ?? '',
                 description: res.description ?? '',
                 status: 'Pending',
+                requestUpload: 0,
+                requestNumber: 0,
+                requestDownload: 0,
+                responseDownloadTime: 0,
+                responseTime: 0,
+                responseUploadTime: 0,
+                unresponse: 0,
               ).toJson(),
             );
         await setInfo(
