@@ -230,7 +230,10 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
     List<LocationModel> listLocation =
         response.children.map((e) => LocationModel.fromJson(e.value)).toList();
     setState(() {
-      this.listLocation = listLocation.map((e) => e.name).toList();
+      this.listLocation = listLocation
+          .where((element) => element.status == 'Active')
+          .map((e) => e.name)
+          .toList();
     });
   }
 }
