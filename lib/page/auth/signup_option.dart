@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,7 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
   final TextEditingController _descController = TextEditingController();
   String? location;
   List<String> listLocation = [];
+  List<LocationModel> listLocationModel = [];
   @override
   void initState() {
     super.initState();
@@ -67,7 +70,7 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
                       if (optionSelected == 0) {
                         _height = 500;
                       } else {
-                        _height = 245;
+                        _height = 175;
                       }
                     }
                   },
@@ -75,22 +78,6 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
               },
             ),
             const SizedBox(height: 12),
-            Visibility(
-              visible: optionSelected == 1,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DropDownWidget(
-                      label: 'Location',
-                      items: listLocation,
-                      onSelect: (value) {
-                        location = value;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Visibility(
               visible: optionSelected == 0,
               child: Column(
@@ -172,6 +159,14 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
                 const SizedBox(width: 24),
                 InkWell(
                   onTap: () {
+                    if (optionSelected == 1) {
+                      var locationModel = listLocationModel.reduce(
+                          (value, element) =>
+                              value.numberOfUser < element.numberOfUser
+                                  ? value
+                                  : element);
+                      location = locationModel.name;
+                    }
                     if ((optionSelected == 1 && location != null) ||
                         (optionSelected == 0 &&
                             _urlController.text != '' &&

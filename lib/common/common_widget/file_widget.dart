@@ -7,12 +7,14 @@ class FileWidget extends StatelessWidget {
   final String time;
   final String size;
   final Function onDownload;
+  final Function onDelete;
   const FileWidget({
     Key? key,
     required this.name,
     required this.time,
     required this.size,
     required this.onDownload,
+    required this.onDelete,
   }) : super(key: key);
 
   @override
@@ -23,6 +25,7 @@ class FileWidget extends StatelessWidget {
       note: size,
       isShowMoreAction: true,
       onDownload: onDownload,
+      onDelete: onDelete,
       icon: const Icon(
         Iconsax.note,
         color: Colors.white,

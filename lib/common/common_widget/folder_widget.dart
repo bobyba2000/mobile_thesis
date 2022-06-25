@@ -8,6 +8,7 @@ class FolderWidget extends StatelessWidget {
   final String note;
   final bool isShowMoreAction;
   final Function? onDownload;
+  final Function? onDelete;
   const FolderWidget({
     Key? key,
     required this.name,
@@ -16,6 +17,7 @@ class FolderWidget extends StatelessWidget {
     required this.note,
     this.isShowMoreAction = false,
     this.onDownload,
+    this.onDelete,
   }) : super(key: key);
 
   @override
@@ -110,7 +112,9 @@ class FolderWidget extends StatelessWidget {
                         ),
                         PopupMenuItem(
                           child: InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              onDelete?.call();
+                            },
                             child: const Text(
                               'Delete',
                               style: TextStyle(

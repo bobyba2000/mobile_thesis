@@ -74,15 +74,14 @@ class _LoginPageState extends State<LoginPage> {
               ServerModel(
                 url: res.optionDetail,
                 owner: UserModel(
-                    imageUrl: user?.photoURL,
-                    name: res.name ?? '',
-                    phoneNumber: res.phone ?? '',
-                    email: user?.email ?? ''
-                    // id: user?.uid ?? '',
-                    ),
+                  imageUrl: user?.photoURL,
+                  name: res.name ?? '',
+                  phoneNumber: res.phone ?? '',
+                  email: user?.email ?? '',
+                ),
                 ownerId: user?.uid ?? '',
                 description: res.description ?? '',
-                status: 'Pending',
+                status: 'Inactive',
                 requestUpload: 0,
                 requestNumber: 0,
                 requestDownload: 0,

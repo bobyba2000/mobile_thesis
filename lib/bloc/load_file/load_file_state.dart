@@ -7,6 +7,7 @@ class LoadFileState extends Equatable {
   final List<FileModel>? listFiles;
   final String? textSearch;
   final bool? isDownloadSuccess;
+  final bool? isDeleteSuccess;
   final String? userName;
   final String? phoneNumber;
   final String? location;
@@ -24,6 +25,7 @@ class LoadFileState extends Equatable {
     this.phoneNumber,
     this.location,
     this.isServer,
+    this.isDeleteSuccess,
     this.isLocationActive = false,
     this.errorMessage,
   });
@@ -39,6 +41,7 @@ class LoadFileState extends Equatable {
         phoneNumber,
         location,
         isLocationActive,
+        isDeleteSuccess,
       ];
 
   bool isRequestDone() =>
@@ -56,6 +59,7 @@ class LoadFileState extends Equatable {
     bool? isServer,
     bool? isLocationActive,
     String? errorMessage,
+    bool? isDeleteSuccess,
   }) {
     return LoadFileState(
       isUploadSuccess: isUploadSuccess ?? this.isUploadSuccess,
@@ -69,6 +73,7 @@ class LoadFileState extends Equatable {
       isServer: isServer ?? this.isServer,
       isLocationActive: isLocationActive ?? this.isLocationActive,
       errorMessage: errorMessage ?? this.errorMessage,
+      isDeleteSuccess: isDeleteSuccess ?? this.isDeleteSuccess,
     );
   }
 }

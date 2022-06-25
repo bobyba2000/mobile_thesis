@@ -300,6 +300,60 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     }
   }
 
+  Future<void> deleteFile(FileModel fileModel) async {
+    List<String> urls = await loadListServers();
+    EasyLoading.show();
+    emit(
+      state.copyWith(
+        isDeleteSuccess: false,
+        listStatus: urls.map((e) => false).toList(),
+      ),
+    );
+    for (var i = 0; i < urls.length; i++) {
+      _sendRequestDelete(i, fileModel, urls);
+    }
+    deleteFileOnFirebase(fileModel);
+  }
+
+  Future<void> deleteFileOnFirebase(FileModel fileModel) async {
+    DataSnapshot response = await FirebaseDatabase.instance
+        .ref('files')
+        .orderByChild('ownerId')
+        .get();
+    for (DataSnapshot res in response.children) {
+      var file = FileModel.fromJson(res.value);
+      if (file.name == fileModel.name &&
+          file.timeCreate == fileModel.timeCreate) {
+        res.ref.remove();
+      }
+    }
+  }
+
+  Future<void> _sendRequestDelete(
+      int urlIndex, FileModel fileModel, List<String> urls) async {
+    final String url = urls[urlIndex];
+    final request = MultipartRequest(
+      "DELETE",
+      Uri.parse(
+          "$url/delete?hash=${fileModel.getHash()}&fileName=${fileModel.getSavedName()}"),
+    );
+    await request.send().timeout(const Duration(milliseconds: 5000),
+        onTimeout: () {
+      return StreamedResponse(Stream.value([]), 408);
+    });
+    emit(
+      state.copyWith(
+        isDeleteSuccess: true,
+        listStatus: urls
+            .asMap()
+            .entries
+            .map((e) =>
+                e.key == urlIndex ? true : state.listStatus?[e.key] ?? false)
+            .toList(),
+      ),
+    );
+  }
+
   Future<void> closeRequest() async {
     EasyLoading.dismiss();
     emit(

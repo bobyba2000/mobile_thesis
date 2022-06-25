@@ -44,7 +44,8 @@ class _LoadFilePageState extends State<LoadFilePage> {
           if ((state.listStatus?.isNotEmpty ?? false) &&
               state.isRequestDone()) {
             if (state.isDownloadSuccess == true ||
-                state.isUploadSuccess == true) {
+                state.isUploadSuccess == true ||
+                state.isDeleteSuccess == true) {
               if (state.isDownloadSuccess == true) {
                 ToastUtilities.show(
                   message: 'Download file success',
@@ -54,6 +55,9 @@ class _LoadFilePageState extends State<LoadFilePage> {
                 ToastUtilities.show(
                   message: 'Upload file success',
                 );
+              }
+              if (state.isDeleteSuccess == true) {
+                ToastUtilities.show(message: 'Delete file success');
               }
             } else {
               ToastUtilities.show(
@@ -236,6 +240,9 @@ class _LoadFilePageState extends State<LoadFilePage> {
                         size: value.size ?? '0 kb',
                         onDownload: () async {
                           bloc.downloadFile(value);
+                        },
+                        onDelete: () {
+                          bloc.deleteFile(value);
                         },
                       );
                     },

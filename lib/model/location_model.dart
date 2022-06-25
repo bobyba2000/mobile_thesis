@@ -6,6 +6,7 @@ class LocationModel {
   String status;
   String description;
   LocationModel? parent;
+  int numberOfUser;
 
   LocationModel({
     required this.name,
@@ -13,6 +14,7 @@ class LocationModel {
     required this.status,
     required this.description,
     required this.parent,
+    required this.numberOfUser,
   });
 
   factory LocationModel.fromJson(dynamic json) {
@@ -28,6 +30,7 @@ class LocationModel {
               json['parent'],
             )
           : null,
+      numberOfUser: int.tryParse(json['numberOfUser'].toString()) ?? 0,
     );
   }
 
@@ -38,6 +41,7 @@ class LocationModel {
       'status': status,
       'description': description,
       'parent': parent?.toJson(),
+      'numberOfUser': numberOfUser,
     };
   }
 }
