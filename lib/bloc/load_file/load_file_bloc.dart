@@ -189,7 +189,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
         .send()
         .timeout(const Duration(milliseconds: 5000), onTimeout: () {
       return StreamedResponse(Stream.value([]), 408);
-    });
+    }).onError((error, stackTrace) => StreamedResponse(Stream.value([]), 500));
     DateTime end = DateTime.now();
     int timeResponse =
         end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
@@ -255,7 +255,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
         .send()
         .timeout(const Duration(milliseconds: 5000), onTimeout: () {
       return StreamedResponse(Stream.value([]), 408);
-    });
+    }).onError((error, stackTrace) => StreamedResponse(Stream.value([]), 500));
     DateTime end = DateTime.now();
     int timeResponse =
         end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
@@ -340,7 +340,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     await request.send().timeout(const Duration(milliseconds: 5000),
         onTimeout: () {
       return StreamedResponse(Stream.value([]), 408);
-    });
+    }).onError((error, stackTrace) => StreamedResponse(Stream.value([]), 500));
     emit(
       state.copyWith(
         isDeleteSuccess: true,
