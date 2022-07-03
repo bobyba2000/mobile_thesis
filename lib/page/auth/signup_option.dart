@@ -178,7 +178,7 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
                         SignupModel(
                           option: optionSelected == 0 ? 'Server' : 'Client',
                           optionDetail: optionSelected == 0
-                              ? _urlController.text
+                              ? '${_urlController.text}:9080'
                               : location ?? '',
                           name:
                               optionSelected == 0 ? _nameController.text : null,
@@ -229,6 +229,7 @@ class _SignupOptionWidgetState extends State<SignupOptionWidget> {
           .where((element) => element.status == 'Active')
           .map((e) => e.name)
           .toList();
+      listLocationModel = listLocation;
     });
   }
 }
