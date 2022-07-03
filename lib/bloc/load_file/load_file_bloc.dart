@@ -56,13 +56,16 @@ class LoadFileBloc extends Cubit<LoadFileState> {
         phoneNumber: model.owner.phoneNumber,
       );
     } else {
-      final client = await FirebaseDatabase.instance
+      DataSnapshot client = await FirebaseDatabase.instance
           .ref('client')
           .orderByChild('clientId')
           .equalTo(FirebaseAuth.instance.currentUser?.uid)
           .get();
       await setInfo(
-          isServer: false, location: (client.value as Map)['location'] ?? '');
+          isServer: false,
+          location:
+              (client.value as Map<String, dynamic>).values.first['location'] ??
+                  '');
     }
   }
 
@@ -80,7 +83,6 @@ class LoadFileBloc extends Cubit<LoadFileState> {
           .orderByChild('name')
           .equalTo(location)
           .get();
-
       LocationModel locationModel = LocationModel.fromJson(
           (locationResponse.value as Map<String, dynamic>).values.first);
       isActive = locationModel.status == 'Active';
@@ -193,7 +195,6 @@ class LoadFileBloc extends Cubit<LoadFileState> {
     DateTime end = DateTime.now();
     int timeResponse =
         end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
-
     updateServerInfo(response.statusCode, timeResponse, url, false);
 
     if (response.statusCode == 200 && state.isUploadSuccess != true) {
@@ -394,7 +395,7 @@ class LoadFileBloc extends Cubit<LoadFileState> {
           model.requestUpload++;
           model.responseUploadTime =
               (model.responseUploadTime * (model.requestUpload - 1) + time) /
-                  model.responseUploadTime;
+                  model.requestUpload;
         }
       }
       server.children.first.ref.update(model.toJson());
